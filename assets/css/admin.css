@@ -1,0 +1,199 @@
+.bxm-admin-body {
+  background: var(--bxm-bg);
+}
+
+.bxm-admin-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.bxm-admin-sidebar {
+  width: 264px;
+  flex-shrink: 0;
+  background: var(--bxm-bg-2);
+  border-right: 1px solid var(--bxm-border);
+  padding: 1.2rem 1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.bxm-admin-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem 1.2rem;
+  border-bottom: 1px solid var(--bxm-border);
+  margin-bottom: 1rem;
+}
+
+.bxm-admin-logo img {
+  border-radius: 50%;
+}
+
+.bxm-admin-logo .title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.05em;
+}
+
+.bxm-admin-logo .sub {
+  font-size: 0.68rem;
+  color: var(--bxm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.bxm-admin-nav-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--bxm-muted);
+  padding: 0.9rem 0.7rem 0.4rem;
+}
+
+.bxm-admin-nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--bxm-text-2);
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.15rem;
+}
+
+.bxm-admin-nav a i {
+  font-size: 1.05rem;
+}
+
+.bxm-admin-nav a:hover {
+  background: #151515;
+  color: #fff;
+}
+
+.bxm-admin-nav a.active {
+  background: #1c1c1c;
+  color: #fff;
+  border: 1px solid var(--bxm-border);
+}
+
+.bxm-admin-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.bxm-admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background: rgba(5, 5, 5, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--bxm-border);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bxm-admin-content {
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.bxm-admin-page-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.bxm-admin-page-sub {
+  color: var(--bxm-text-2);
+  font-size: 0.9rem;
+}
+
+.bxm-table-wrap {
+  border: 1px solid var(--bxm-border);
+  border-radius: var(--bxm-radius);
+  overflow: hidden;
+  background: var(--bxm-card);
+}
+
+.bxm-table {
+  margin-bottom: 0;
+  color: #fff;
+  vertical-align: middle;
+}
+
+.bxm-table thead th {
+  background: #0d0d0d;
+  color: var(--bxm-text-2);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-bottom: 1px solid var(--bxm-border);
+  padding: 0.8rem 1rem;
+  white-space: nowrap;
+}
+
+.bxm-table tbody td {
+  border-color: var(--bxm-border);
+  padding: 0.8rem 1rem;
+  font-size: 0.9rem;
+  background: transparent;
+}
+
+.bxm-table tbody tr:hover td {
+  background: #141414;
+}
+
+.bxm-table-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 9px;
+  object-fit: cover;
+  border: 1px solid var(--bxm-border);
+  background: #0d0d0d;
+}
+
+.bxm-table-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.bxm-form-card {
+  border: 1px solid var(--bxm-border);
+  border-radius: var(--bxm-radius);
+  background: var(--bxm-card);
+  padding: clamp(1rem, 3vw, 1.6rem);
+}
+
+.bxm-detail-field {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid var(--bxm-border);
+  border-radius: var(--bxm-radius-sm);
+  background: var(--bxm-bg-2);
+  margin-bottom: 0.5rem;
+}
+
+.bxm-detail-field .drag {
+  color: var(--bxm-muted);
+  cursor: grab;
+}
+
+.bxm-admin-offcanvas {
+  background: var(--bxm-bg-2);
+  color: #fff;
+  width: 280px;
+}
+
+@media (max-width: 991.98px) {
+  .bxm-admin-sidebar {
+    display: none;
+  }
+}
