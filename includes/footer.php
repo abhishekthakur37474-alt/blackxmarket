@@ -12,7 +12,6 @@ $footerLinks = [
         ['My Profile', bxm_url('profile.php')],
         ['My Orders', bxm_url('orders.php')],
         ['Wishlist', bxm_url('wishlist.php')],
-        ['Cart', bxm_url('cart.php')],
     ],
     'Support' => [
         ['Customer Support', bxm_url('support.php')],

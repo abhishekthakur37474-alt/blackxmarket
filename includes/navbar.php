@@ -23,10 +23,6 @@ $navItems = [
           <i class="bi bi-heart"></i>
           <span class="badge bxm-count-badge" data-bxm-wishlist-count hidden>0</span>
         </a>
-        <a class="btn bxm-icon-btn position-relative" href="<?= bxm_url('cart.php') ?>" aria-label="Cart">
-          <i class="bi bi-bag"></i>
-          <span class="badge bxm-count-badge" data-bxm-cart-count hidden>0</span>
-        </a>
         <div class="dropdown bxm-nav-dropdown" data-bxm-user-menu hidden>
           <button class="btn bxm-icon-btn position-relative dropdown-toggle bxm-notif-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-label="Notifications">
             <i class="bi bi-bell"></i>

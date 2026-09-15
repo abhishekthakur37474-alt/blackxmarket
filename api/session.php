@@ -45,9 +45,20 @@ if (!$verified || empty($verified['uid'])) {
 }
 
 $uid = $verified['uid'];
-$record = bxm_get_user_record($uid, $idToken);
+$lookup = bxm_rtdb_request('GET', 'users/' . $uid, $idToken);
+$record = (!empty($lookup['ok']) && is_array($lookup['data'])) ? $lookup['data'] : null;
 
 if (!$record) {
+    $lookup = bxm_rtdb_request('GET', 'users/' . $uid, null);
+    $record = (!empty($lookup['ok']) && is_array($lookup['data'])) ? $lookup['data'] : null;
+}
+
+if (!$record) {
+    $notFound = ($lookup['status'] ?? 0) === 200 && $lookup['data'] === null;
+    if (!$notFound) {
+        bxm_log('session profile lookup failed', ['uid' => $uid, 'status' => $lookup['status'] ?? 0]);
+        bxm_json(['ok' => false, 'error' => 'Could not load your account. Please try again.'], 502);
+    }
     $record = [
         'name' => $verified['name'] ?: $verified['email'],
         'email' => $verified['email'],
@@ -56,7 +67,10 @@ if (!$record) {
         'status' => 'active',
         'createdAt' => round(microtime(true) * 1000),
     ];
-    bxm_rtdb_put('users/' . $uid, $record, $idToken);
+    $created = bxm_rtdb_put('users/' . $uid, $record, $idToken);
+    if (empty($created['ok'])) {
+        bxm_json(['ok' => false, 'error' => 'Could not create your account profile. Please try again.'], 502);
+    }
 }
 
 if (isset($record['status']) && $record['status'] === 'banned') {

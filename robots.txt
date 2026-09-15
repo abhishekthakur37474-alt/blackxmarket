@@ -5,11 +5,9 @@ Disallow: /api/
 Disallow: /auth/
 Disallow: /includes/
 Disallow: /firebase/
-Disallow: /checkout.php
 Disallow: /payment.php
 Disallow: /orders.php
 Disallow: /order-details.php
 Disallow: /profile.php
-Disallow: /cart.php
 Disallow: /wishlist.php
 Disallow: /notifications.php

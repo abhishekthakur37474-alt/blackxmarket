@@ -20,6 +20,10 @@
     }
   }
 
+  function phpIsAdmin() {
+    return !!(window.BXM_APP && window.BXM_APP.role === 'admin');
+  }
+
   function ready(cb) {
     function run() {
       if (!window.BXM || typeof window.BXM.onAuth !== 'function') {
@@ -31,25 +35,25 @@
           deny('Firebase is not configured yet. Set your Firebase Web API key in includes/config.php.');
           return;
         }
-        if (!user) {
-          window.location.href = window.BXM.url('admin/login.php');
+        if (window.BXM.isAdmin || phpIsAdmin()) {
+          cb(user);
           return;
         }
-        if (window.BXM.isAdmin) {
-          cb(user);
+        if (!user) {
+          window.location.replace(window.BXM.url('admin/login.php'));
           return;
         }
         var n = 0;
         var t = setInterval(function () {
           n += 1;
-          if (window.BXM.isAdmin) {
+          if (window.BXM.isAdmin || phpIsAdmin()) {
             clearInterval(t);
             cb(user);
             return;
           }
           if (n > 40) {
             clearInterval(t);
-            window.location.href = window.BXM.url('admin/login.php');
+            window.location.replace(window.BXM.url('admin/login.php'));
           }
         }, 50);
       });

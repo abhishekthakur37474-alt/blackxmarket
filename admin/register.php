@@ -96,12 +96,20 @@ $inlineScript = <<<'HTML'
     }).then(function (token) {
       return fetch(window.BXM.api('session.php'), {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': (window.BXM_APP && window.BXM_APP.csrf) || '' },
         body: JSON.stringify({ idToken: token })
-      }).then(function (r) { return r.json().catch(function () { return {}; }); }).catch(function () { return {}; });
+      }).then(function (r) {
+        return r.json().then(function (data) { return data || {}; }).catch(function () { return {}; });
+      }).then(function (data) {
+        if (!data.ok || !data.user || data.user.role !== 'admin') {
+          throw new Error(data.error || 'Admin session could not be created.');
+        }
+        return data;
+      });
     }).then(function () {
       window.BXM.toast('Admin account created', 'success');
-      setTimeout(function () { window.location.href = window.BXM.url('admin/index.php'); }, 500);
+      window.location.replace(window.BXM.url('admin/index.php'));
     }).catch(function (err) {
       btn.disabled = false;
       var msg = err.message || 'Registration failed';

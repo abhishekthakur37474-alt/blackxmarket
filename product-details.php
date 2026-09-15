@@ -89,8 +89,7 @@ $inlineScript = '<script>window.BXM_PRODUCT_ID = ' . json_encode($productId) . '
     }
     html += '</div>';
     html += '<div class="d-flex flex-wrap gap-2 mb-4">';
-    html += '<button class="bxm-btn bxm-btn-primary' + (outOfStock ? ' disabled' : '') + '" data-bxm-add-cart="' + window.BXM.escapeHtml(productId) + '"><i class="bi bi-bag-plus"></i> Add to Cart</button>';
-    html += '<button class="bxm-btn bxm-btn-outline' + (outOfStock ? ' disabled' : '') + '" id="buyNowBtn"><i class="bi bi-lightning-charge"></i> Buy Now</button>';
+    html += '<button class="bxm-btn bxm-btn-primary' + (outOfStock ? ' disabled' : '') + '" id="buyNowBtn"' + (outOfStock ? ' disabled' : '') + '><i class="bi bi-lightning-charge"></i> Buy Now</button>';
     html += '<button class="bxm-btn bxm-btn-outline" data-bxm-wish="' + window.BXM.escapeHtml(productId) + '"><i class="bi bi-heart"></i> Wishlist</button>';
     html += '</div>';
     html += '<div class="bxm-card p-3"><h6 class="mb-2">Description</h6><p class="text-secondary mb-0" style="white-space:pre-line">' + window.BXM.escapeHtml(product.description || 'No description provided.') + '</p></div>';
@@ -103,9 +102,8 @@ $inlineScript = '<script>window.BXM_PRODUCT_ID = ' . json_encode($productId) . '
     var buy = document.getElementById('buyNowBtn');
     if (buy) {
       buy.addEventListener('click', function () {
-        if (!window.BXM.requireLogin()) return;
-        window.BXM.addToCart(productId);
-        setTimeout(function () { window.location.href = window.BXM.url('cart.php'); }, 600);
+        if (buy.disabled || buy.classList.contains('disabled')) return;
+        window.BXM.buyNow(productId);
       });
     }
   }

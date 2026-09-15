@@ -9,13 +9,6 @@ require_once __DIR__ . '/includes/header.php';
 
 <section class="bxm-section-sm">
   <div class="container">
-    <nav class="mb-3 small">
-      <a href="cart.php" class="bxm-link-muted">Cart</a>
-      <span class="text-muted mx-1">/</span>
-      <a href="checkout.php" class="bxm-link-muted">Checkout</a>
-      <span class="text-muted mx-1">/</span>
-      <span class="text-secondary">Payment</span>
-    </nav>
     <h1 class="bxm-section-title mb-4">Payment</h1>
     <div class="row g-4">
       <div class="col-lg-7">
@@ -48,10 +41,17 @@ require_once __DIR__ . '/includes/header.php';
           <div id="summaryItems" class="mb-3"><div class="bxm-skeleton" style="height:60px"></div></div>
           <div class="d-flex justify-content-between mb-2"><span class="text-secondary">Subtotal</span><span id="summarySubtotal">₹0.00</span></div>
           <div class="d-flex justify-content-between mb-3"><span class="text-secondary">Coupon Discount</span><span class="text-success" id="summaryDiscount">-₹0.00</span></div>
+
+          <label class="form-label">Coupon Code</label>
+          <div class="input-group mb-2">
+            <input type="text" class="form-control" id="couponInput" placeholder="GAMING20">
+            <button class="bxm-btn bxm-btn-outline" type="button" id="applyCouponBtn">Apply</button>
+          </div>
+          <div id="couponMessage" class="small mb-3"></div>
+
           <hr class="bxm-divider my-3">
           <div class="d-flex justify-content-between mb-2"><span class="fw-semibold">Amount Payable</span><span class="fw-bold" id="summaryTotal">₹0.00</span></div>
           <p class="text-muted small mb-0">Pay the exact amount, then upload the screenshot and transaction ID.</p>
-          <a href="checkout.php" class="bxm-btn bxm-btn-ghost w-100 mt-3">Back to Checkout</a>
         </div>
       </div>
     </div>
@@ -67,12 +67,6 @@ $inlineScript = <<<'HTML'
   var appliedCoupon = '';
   var appliedDiscount = 0;
   var subtotal = 0;
-
-  try {
-    var saved = JSON.parse(sessionStorage.getItem('bxmCheckout') || '{}');
-    appliedCoupon = saved.coupon || '';
-    appliedDiscount = Number(saved.discount) || 0;
-  } catch (e) {}
 
   function cartIds() {
     return Object.keys(window.BXM.state.cart || {}).filter(function (id) { return products[id]; });
@@ -91,17 +85,24 @@ $inlineScript = <<<'HTML'
         '<span class="text-secondary text-truncate me-2">' + window.BXM.escapeHtml(p.title || 'Product') + ' x' + qty + '</span>' +
         '<span>' + window.BXM.money(price * qty) + '</span></div>';
     });
-    document.getElementById('summaryItems').innerHTML = rows || '<p class="text-secondary small mb-0">Loading cart...</p>';
+    document.getElementById('summaryItems').innerHTML = rows || '<p class="text-secondary small mb-0">Loading order...</p>';
     return total;
   }
 
   function render() {
     if (!productsReady || !cartReady) return;
     if (!cartIds().length) {
-      document.getElementById('summaryItems').innerHTML = '<p class="text-secondary mb-2">Your cart is empty.</p><a href="' + window.BXM.url('cart.php') + '" class="bxm-btn bxm-btn-outline bxm-btn-sm">Go to Cart</a>';
+      document.getElementById('summaryItems').innerHTML = '<p class="text-secondary mb-2">No product selected.</p><a href="' + window.BXM.url('products.php') + '" class="bxm-btn bxm-btn-outline bxm-btn-sm">Browse Products</a>';
+      document.getElementById('summarySubtotal').textContent = window.BXM.money(0);
+      document.getElementById('summaryDiscount').textContent = '-' + window.BXM.money(0);
+      document.getElementById('summaryTotal').textContent = window.BXM.money(0);
+      updatePayable();
       return;
     }
     subtotal = computeSubtotal();
+    if (appliedCoupon) {
+      document.getElementById('couponMessage').innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Coupon <b>' + window.BXM.escapeHtml(appliedCoupon) + '</b> applied. You saved ' + window.BXM.money(appliedDiscount) + '</span> <button type="button" class="bxm-copy-btn ms-1" id="removeCouponBtn">Remove</button>';
+    }
     document.getElementById('summarySubtotal').textContent = window.BXM.money(subtotal);
     document.getElementById('summaryDiscount').textContent = '-' + window.BXM.money(appliedDiscount);
     document.getElementById('summaryTotal').textContent = window.BXM.money(Math.max(0, subtotal - appliedDiscount));
@@ -142,6 +143,38 @@ $inlineScript = <<<'HTML'
     if (el) el.textContent = window.BXM.money(Math.max(0, subtotal - appliedDiscount));
   }
 
+  document.getElementById('applyCouponBtn').addEventListener('click', function () {
+    var code = document.getElementById('couponInput').value.trim();
+    var msg = document.getElementById('couponMessage');
+    if (!code) { msg.innerHTML = '<span class="text-warning">Enter a coupon code.</span>'; return; }
+    if (!cartIds().length) { msg.innerHTML = '<span class="text-warning">Select a product first.</span>'; return; }
+    window.BXM.loader(true);
+    window.BXM.apiFetch('validate-coupon.php', { method: 'POST', json: { code: code, cartAmount: subtotal } })
+      .then(function (res) {
+        window.BXM.loader(false);
+        if (!res.ok) {
+          appliedCoupon = ''; appliedDiscount = 0;
+          msg.innerHTML = '<span class="text-danger">' + window.BXM.escapeHtml(res.error || 'Invalid coupon') + '</span>';
+          render();
+          return;
+        }
+        appliedCoupon = res.code;
+        appliedDiscount = Number(res.discount) || 0;
+        render();
+        window.BXM.toast('Coupon applied successfully', 'success');
+      })
+      .catch(function () { window.BXM.loader(false); msg.innerHTML = '<span class="text-danger">Could not apply coupon.</span>'; });
+  });
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#removeCouponBtn')) {
+      appliedCoupon = ''; appliedDiscount = 0;
+      document.getElementById('couponInput').value = '';
+      document.getElementById('couponMessage').innerHTML = '';
+      render();
+    }
+  });
+
   document.getElementById('screenshotInput').addEventListener('change', function (e) {
     var file = e.target.files[0];
     var preview = document.getElementById('screenshotPreview');
@@ -157,7 +190,7 @@ $inlineScript = <<<'HTML'
     var txId = document.getElementById('transactionId').value.trim();
     if (!file) { window.BXM.toast('Please upload the payment screenshot', 'warning'); return; }
     if (!txId) { window.BXM.toast('Please enter the transaction ID', 'warning'); return; }
-    if (!cartIds().length) { window.BXM.toast('Your cart is empty', 'warning'); return; }
+    if (!cartIds().length) { window.BXM.toast('No product selected', 'warning'); return; }
     var btn = document.getElementById('submitPaymentBtn');
     btn.disabled = true;
     window.BXM.loader(true);
@@ -172,7 +205,6 @@ $inlineScript = <<<'HTML'
       window.BXM.loader(false);
       btn.disabled = false;
       if (!res.ok) { window.BXM.toast(res.error || 'Could not submit payment', 'danger'); return; }
-      try { sessionStorage.removeItem('bxmCheckout'); } catch (err) {}
       window.BXM.toast('Payment submitted successfully', 'success');
       setTimeout(function () {
         window.location.href = window.BXM.url('order-details.php?id=' + encodeURIComponent(res.orderId) + '&new=1');

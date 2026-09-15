@@ -64,12 +64,20 @@ $inlineScript = <<<HTML
       return cred.user.getIdToken().then(function (token) {
         return fetch(window.BXM.api('session.php'), {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': (window.BXM_APP && window.BXM_APP.csrf) || '' },
           body: JSON.stringify({ idToken: token })
-        }).then(function (r) { return r.json().catch(function () { return {}; }); }).catch(function () { return {}; });
+        }).then(function (r) {
+          return r.json().then(function (data) { return data || {}; }).catch(function () { return {}; });
+        }).then(function (data) {
+          if (!data.ok) {
+            throw new Error(data.error || 'Session could not be created.');
+          }
+          return data;
+        });
       }).then(function () {
         window.BXM.toast('Login successful', 'success');
-        setTimeout(go, 400);
+        go();
       });
     }).catch(function (err) {
       btn.disabled = false;

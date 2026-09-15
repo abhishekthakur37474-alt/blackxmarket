@@ -69,7 +69,7 @@ if (!defined('BXM_BASE')) {
 }
 
 if (session_status() === PHP_SESSION_NONE) {
-    $cookiePath = BXM_BASE !== '' ? BXM_BASE : '/';
+    $cookiePath = '/';
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => $cookiePath,

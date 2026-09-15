@@ -206,8 +206,8 @@
     }
     html += '</div>';
     html += '<div class="mt-auto d-flex gap-2">';
-    html += '<button type="button" class="bxm-btn bxm-btn-primary flex-grow-1' + (outOfStock ? ' disabled' : '') + '" data-bxm-add-cart="' + escapeHtml(id) + '"' + (outOfStock ? ' disabled' : '') + '>';
-    html += '<i class="bi bi-bag-plus"></i> ' + (outOfStock ? 'Out of Stock' : 'Add to Cart');
+    html += '<button type="button" class="bxm-btn bxm-btn-primary flex-grow-1' + (outOfStock ? ' disabled' : '') + '" data-bxm-buy-now="' + escapeHtml(id) + '"' + (outOfStock ? ' disabled' : '') + '>';
+    html += '<i class="bi bi-lightning-charge"></i> ' + (outOfStock ? 'Out of Stock' : 'Buy Now');
     html += '</button>';
     html += '<a href="' + href + '" class="bxm-btn bxm-btn-outline" aria-label="View details"><i class="bi bi-arrow-right"></i></a>';
     html += '</div></div></div>';
@@ -302,15 +302,16 @@
     });
   }
 
-  function addToCart(productId) {
+  function addToCart(productId, options) {
+    options = options || {};
     if (!requireLogin()) {
-      return;
+      return Promise.resolve(false);
     }
     if (!productId) {
-      return;
+      return Promise.resolve(false);
     }
     var ref = db.ref('carts/' + state.user.uid + '/' + productId);
-    ref.transaction(function (current) {
+    return ref.transaction(function (current) {
       if (current) {
         current.quantity = (current.quantity || 0) + 1;
         current.addedAt = Date.now();
@@ -318,9 +319,29 @@
       }
       return { quantity: 1, addedAt: Date.now() };
     }).then(function () {
-      toast('Added to cart', 'success');
+      if (!options.silent) {
+        toast('Added to cart', 'success');
+      }
+      return true;
     }).catch(function () {
-      toast('Could not add to cart', 'danger');
+      toast(options.errorMessage || 'Could not add to cart', 'danger');
+      return false;
+    });
+  }
+
+  function buyNow(productId) {
+    if (!requireLogin()) {
+      return;
+    }
+    if (!productId || !state.user) {
+      return;
+    }
+    var payload = {};
+    payload[productId] = { quantity: 1, addedAt: Date.now() };
+    db.ref('carts/' + state.user.uid).set(payload).then(function () {
+      window.location.href = url('payment.php');
+    }).catch(function () {
+      toast('Could not start payment', 'danger');
     });
   }
 
@@ -366,7 +387,7 @@
       return;
     }
     db.ref('wishlists/' + state.user.uid + '/' + productId).remove();
-    addToCart(productId);
+    buyNow(productId);
   }
 
   function updateCartCount() {
@@ -552,10 +573,14 @@
   function syncSession(user) {
     return getToken().then(function (token) {
       if (!user || !token) {
-        return fetch(api('session.php'), { method: 'DELETE', headers: csrfHeaders({}) }).catch(function () {});
+        if (cfg.role === 'admin') {
+          return Promise.resolve();
+        }
+        return fetch(api('session.php'), { method: 'DELETE', credentials: 'same-origin', headers: csrfHeaders({}) }).catch(function () {});
       }
       return fetch(api('session.php'), {
         method: 'POST',
+        credentials: 'same-origin',
         headers: csrfHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ idToken: token })
       }).catch(function () {});
@@ -637,10 +662,13 @@
 
   function initGlobalEvents() {
     document.addEventListener('click', function (e) {
-      var add = e.target.closest('[data-bxm-add-cart]');
-      if (add) {
+      var buy = e.target.closest('[data-bxm-buy-now]');
+      if (buy) {
         e.preventDefault();
-        addToCart(add.getAttribute('data-bxm-add-cart'));
+        if (buy.disabled || buy.classList.contains('disabled')) {
+          return;
+        }
+        buyNow(buy.getAttribute('data-bxm-buy-now'));
         return;
       }
       var wish = e.target.closest('[data-bxm-wish]');
@@ -707,6 +735,7 @@
     apiFetch: apiFetch,
     uploadImage: uploadImage,
     addToCart: addToCart,
+    buyNow: buyNow,
     setCartQuantity: setCartQuantity,
     removeFromCart: removeFromCart,
     toggleWishlist: toggleWishlist,

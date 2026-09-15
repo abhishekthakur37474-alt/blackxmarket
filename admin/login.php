@@ -78,14 +78,30 @@ $inlineScript = <<<'HTML'
         return user.getIdToken();
       });
     }).then(function (token) {
+      if (!token) throw new Error('Could not create admin session.');
       return fetch(window.BXM.api('session.php'), {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': (window.BXM_APP && window.BXM_APP.csrf) || '' },
         body: JSON.stringify({ idToken: token })
-      }).then(function (r) { return r.json().catch(function () { return {}; }); }).catch(function () { return {}; });
+      }).then(function (r) {
+        return r.json().then(function (data) {
+          return { status: r.status, data: data || {} };
+        }).catch(function () {
+          return { status: r.status, data: {} };
+        });
+      }).then(function (res) {
+        var data = res.data || {};
+        if (!data.ok || !data.user || data.user.role !== 'admin') {
+          return window.BXM.auth.signOut().then(function () {
+            throw new Error(data.error || 'Admin session could not be created.');
+          });
+        }
+        return data;
+      });
     }).then(function () {
       window.BXM.toast('Welcome, Admin', 'success');
-      setTimeout(function () { window.location.href = window.BXM.url('admin/index.php'); }, 400);
+      window.location.replace(window.BXM.url('admin/index.php'));
     }).catch(function (err) {
       btn.disabled = false;
       var msg = err.message || 'Login failed';

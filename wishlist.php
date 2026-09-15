@@ -36,7 +36,7 @@ $inlineScript = <<<'HTML'
     grid.innerHTML = items.map(function (p) {
       var card = window.BXM.productCardHTML(p);
       return '<div class="col-6 col-md-4 col-lg-3">' + card +
-        '<button class="bxm-btn bxm-btn-outline bxm-btn-sm w-100 mt-2" data-move-cart="' + window.BXM.escapeHtml(p.id) + '"><i class="bi bi-bag-plus"></i> Move to Cart</button></div>';
+        '<button class="bxm-btn bxm-btn-outline bxm-btn-sm w-100 mt-2" data-move-cart="' + window.BXM.escapeHtml(p.id) + '"><i class="bi bi-lightning-charge"></i> Buy Now</button></div>';
     }).join('');
   }
 

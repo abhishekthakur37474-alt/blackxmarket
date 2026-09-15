@@ -34,7 +34,7 @@ $cartResult = bxm_rtdb_get('carts/' . $uid, $idToken);
 $cart = (!empty($cartResult['ok']) && is_array($cartResult['data'])) ? $cartResult['data'] : [];
 
 if (empty($cart)) {
-    bxm_json(['ok' => false, 'error' => 'Your cart is empty.'], 400);
+    bxm_json(['ok' => false, 'error' => 'No product selected.'], 400);
 }
 
 $productsResult = bxm_rtdb_get('products', $idToken);
@@ -50,7 +50,7 @@ foreach ($cart as $productId => $entry) {
     $product = $products[$productId];
     $status = $product['status'] ?? 'active';
     if ($status !== 'active') {
-        bxm_json(['ok' => false, 'error' => 'One or more products in your cart are no longer available.'], 400);
+        bxm_json(['ok' => false, 'error' => 'This product is no longer available.'], 400);
     }
     $quantity = max(1, (int) ($entry['quantity'] ?? 1));
     $price = (float) ($product['discountedPrice'] ?? $product['originalPrice'] ?? 0);
@@ -68,7 +68,7 @@ foreach ($cart as $productId => $entry) {
 }
 
 if (empty($items)) {
-    bxm_json(['ok' => false, 'error' => 'The products in your cart are no longer available.'], 400);
+    bxm_json(['ok' => false, 'error' => 'This product is no longer available.'], 400);
 }
 
 $subtotal = round($subtotal, 2);
